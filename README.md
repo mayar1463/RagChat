@@ -24,10 +24,10 @@ A store chatbot system, built with Node.js and MySQL using custom SQL queries.
     ```
 
 4. The API will be available at:
-    <http://localhost:5001>
+    <PROTOCOL.HOST/API_BASE_PATH/API_VERSION:5001>
 
     Swagger UI:
-    <http://localhost:5001/api-docs>
+    <PROTOCOL.HOST:5001/api-docs>
 
 ---
 
