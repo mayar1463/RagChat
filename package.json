@@ -1,0 +1,27 @@
+{
+  "name": "rag-chat-mysql-nodejs",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --detectOpenHandles --silent"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
+    "joi": "^17.9.2",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.3.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^4.6.3",
+    "yamljs": "^0.3.0"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.1",
+    "jest": "^30.0.5",
+    "nodemon": "^2.0.22",
+    "supertest": "^7.1.4"
+  }
+}

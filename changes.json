@@ -1,0 +1,15 @@
+{
+  "removed_file": true,
+  "removed_mac_files": [
+    ".DS_Store",
+    "src/.DS_Store"
+  ],
+  "modified": [
+    "jest.setup.js (new)",
+    "jest.config.js (updated)",
+    "src/tests/session.test.js (dotenv removed, pool end added)",
+    "src/app.js (rewritten, conditional morgan, express.json)",
+    "src/middlewares/rate.middleware.js (rewritten)",
+    "src/server.js (conditional start)"
+  ]
+}

@@ -1,0 +1,247 @@
+openapi: 3.0.4
+info:
+  title: RAG Chat API v1
+  version: 1.0.0
+servers:
+  - url: url
+
+paths:
+  /sessions:
+    post:
+      summary: Create session
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                title:
+                  type: string
+              example:
+                userId: "user-123"
+                title: "My first session"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+
+    get:
+      summary: List sessions for user
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+        - in: query
+          name: userId
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Session'
+
+  /sessions/{id}:
+    get:
+      summary: Get session
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+
+    patch:
+      summary: Rename session
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+
+    delete:
+      summary: Delete session and its messages
+      description: Delete the session identified by `id` and cascade-delete its messages.
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Session and messages deleted successfully (No content)
+
+  /sessions/{id}/favorite:
+    patch:
+      summary: Mark/unmark favorite
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isFavorite:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+
+  /sessions/{id}/messages:
+    post:
+      summary: Add message
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sender:
+                  type: string
+                content:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+
+    get:
+      summary: List messages for session
+      parameters:
+        - $ref: '#/components/parameters/APIKeyHeader'
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: offset
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Message'
+
+components:
+  parameters:
+    APIKeyHeader:
+      in: header
+      name: x-api-key
+      required: true
+      schema:
+        type: string
+      description: Your API key
+
+  schemas:
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        userId:
+          type: string
+          example: "user-123"
+        title:
+          type: string
+          example: "My first session"
+        isFavorite:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Message:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 456
+        sessionId:
+          type: integer
+          example: 123
+        sender:
+          type: string
+          example: "user"
+        content:
+          type: string
+          example: "Hello, what is the capital of France?"
+        context:
+          # Changed type to 'object' because 'json' is not a valid OpenAPI type.
+          type: object
+          example: { "key1": "value1" , "key2": "value2"}
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
