@@ -9,6 +9,10 @@ paths:
   /sessions:
     post:
       summary: Create session
+      description: |
+        Creates a new session for the given user.
+        - **Each user cannot have two sessions with the same `title`**.
+        - If the same title already exists for the user, a `409 Conflict` is returned.
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
       requestBody:
@@ -17,14 +21,22 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - userId
+                - title
               properties:
                 userId:
                   type: string
+                  description: User ID (string or number as string)
+                  minLength: 1
+                  maxLength: 50
+                  example: "user-123"
                 title:
                   type: string
-              example:
-                userId: "user-123"
-                title: "My first session"
+                  description: Title of the session (must be unique per user)
+                  minLength: 1
+                  maxLength: 255
+                  example: "My first session"
       responses:
         '201':
           description: Created
@@ -32,6 +44,16 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Session'
+        '409':
+          description: Conflict — A session with this title already exists for this user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "A session with this title already exists for this user."
 
     get:
       summary: List sessions for user
@@ -72,6 +94,9 @@ paths:
 
     patch:
       summary: Rename session
+      description: |
+        Updates the title of a session.
+        - The new title must be unique for this user.
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
         - in: path
@@ -84,9 +109,14 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - title
               properties:
                 title:
                   type: string
+                  description: New session title (must be unique for the user)
+                  minLength: 1
+                  maxLength: 255
       responses:
         '200':
           description: OK
@@ -94,6 +124,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Session'
+        '409':
+          description: Conflict — Title already exists for this user.
 
     delete:
       summary: Delete session and its messages
@@ -146,9 +178,13 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - sender
+                - content
               properties:
                 sender:
                   type: string
+                  enum: [user, assistant]
                 content:
                   type: string
       responses:
@@ -230,12 +266,12 @@ components:
           example: 123
         sender:
           type: string
+          enum: [user, assistant]
           example: "user"
         content:
           type: string
           example: "Hello, what is the capital of France?"
         context:
-          # Changed type to 'object' because 'json' is not a valid OpenAPI type.
           type: object
           example: { "key1": "value1" , "key2": "value2"}
         createdAt:
@@ -244,4 +280,3 @@ components:
         updatedAt:
           type: string
           format: date-time
-
