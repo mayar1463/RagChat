@@ -1,14 +1,35 @@
-openapi: 3.0.4
+openapi: 3.0.0
 info:
   title: RAG Chat API v1
   version: 1.0.0
 servers:
-  - url: url
-
+  - url: http://localhost:5001/api/v1
+tags:
+  - name: APIs
+    description: All available application endpoints.
 paths:
+  /health:
+    get:
+      summary: Health Check
+      tags:
+        - APIs
+      description: Returns a simple JSON response to confirm that the service is up and running.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
   /sessions:
     post:
       summary: Create session
+      tags:
+        - APIs
       description: |
         Creates a new session for the given user.
         - **Each user cannot have two sessions with the same `title`**.
@@ -57,6 +78,8 @@ paths:
 
     get:
       summary: List sessions for user
+      tags:
+        - APIs
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
         - in: query
@@ -64,6 +87,14 @@ paths:
           schema:
             type: string
           required: true
+        - in: query
+          name: limit
+          schema:
+            type: integer
+        - in: query
+          name: offset
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
@@ -77,6 +108,8 @@ paths:
   /sessions/{id}:
     get:
       summary: Get session
+      tags:
+        - APIs
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
         - in: path
@@ -94,6 +127,8 @@ paths:
 
     patch:
       summary: Rename session
+      tags:
+        - APIs
       description: |
         Updates the title of a session.
         - The new title must be unique for this user.
@@ -129,6 +164,8 @@ paths:
 
     delete:
       summary: Delete session and its messages
+      tags:
+        - APIs
       description: Delete the session identified by `id` and cascade-delete its messages.
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
@@ -144,6 +181,8 @@ paths:
   /sessions/{id}/favorite:
     patch:
       summary: Mark/unmark favorite
+      tags:
+        - APIs
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
         - in: path
@@ -166,6 +205,8 @@ paths:
   /sessions/{id}/messages:
     post:
       summary: Add message
+      tags:
+        - APIs
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
         - in: path
@@ -197,6 +238,8 @@ paths:
 
     get:
       summary: List messages for session
+      tags:
+        - APIs
       parameters:
         - $ref: '#/components/parameters/APIKeyHeader'
         - in: path
@@ -241,7 +284,7 @@ components:
           example: 123
         userId:
           type: string
-          example: "user-123"
+          example: "user-123 and unique_user_title (user_id, title)"
         title:
           type: string
           example: "My first session"
@@ -267,7 +310,7 @@ components:
         sender:
           type: string
           enum: [user, assistant]
-          example: "user"
+          example: [user, assistant]
         content:
           type: string
           example: "Hello, what is the capital of France?"

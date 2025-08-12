@@ -49,15 +49,15 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 
 const baseRoute = `${API_BASE_PATH}/${API_VERSION}`;
 
+// Move the health check endpoint here, before the auth middleware.
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 // Apply authentication middleware to all subsequent routes
 app.use(auth);
 
 // Define API routes for sessions and messages
 app.use(`${baseRoute}/sessions`, sessionRoutes);
 app.use(`${baseRoute}/sessions`, messageRoutes);
-
-// Health check endpoint
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 // 404 Not Found handler - must be placed before the error handler
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
