@@ -27,7 +27,7 @@ fs.existsSync(logDir) || fs.mkdirSync(logDir);
 const frontendURL = process.env.FRONTEND_URL || '*';
 app.use(cors({
   origin: frontendURL, // Or set your exact React app URL: "http://localhost:3000"
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'x-api-key'],
   credentials: true,
   optionsSuccessStatus: 204
