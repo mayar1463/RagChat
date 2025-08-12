@@ -25,9 +25,13 @@ A store chatbot system, built with Node.js and MySQL using custom SQL queries.
 
 4. The API will be available at:
     <PROTOCOL.HOST/API_BASE_PATH/API_VERSION:PORT>
+    e.g
+    http://localhost:5001/api/v1/
 
     Swagger UI:
     <PROTOCOL.HOST:PORT/api-docs>
+    e.g
+    http://localhost:5001/api-docs
 
 ---
 
@@ -54,7 +58,7 @@ This project uses `docker compose` to manage the services. All commands should b
     ```bash
     docker compose down -v
     docker compose build --no-cache
-     docker compose up --build
+    docker compose up --build
     ```
 
 * **Stop All Running Containers:** Stops the services gracefully.
