@@ -21,8 +21,17 @@ const accessLogStream = fs.createWriteStream(path.join(logDir, 'access.log'), { 
 // Ensure log directory exists
 fs.existsSync(logDir) || fs.mkdirSync(logDir);
 
-// Enable Cross-Origin Resource Sharing
-app.use(cors());
+// Enable Cross-Origin Resource Sharing with the specified options.
+// This must be one of the first middlewares to handle preflight OPTIONS requests.
+
+const frontendURL = process.env.FRONTEND_URL || '*';
+app.use(cors({
+  origin: frontendURL, // Or set your exact React app URL: "http://localhost:3000"
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'x-api-key'],
+  credentials: true,
+  optionsSuccessStatus: 204
+}));
 
 // Parse JSON request bodies
 app.use(express.json());
