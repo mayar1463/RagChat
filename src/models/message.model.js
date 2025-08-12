@@ -1,20 +1,24 @@
-const pool = require('./db');
+// src/models/message.model.js
+const Message = require('../sequelize-models/message.model.sequelize');
 
 async function addMessage(sessionId, sender, content, context = null) {
-  const [result] = await pool.query(
-    'INSERT INTO messages (session_id, sender, content, context) VALUES (?, ?, ?, ?)',
-    [sessionId, sender, content, context]
-  );
-  const [rows] = await pool.query('SELECT * FROM messages WHERE id = ?', [result.insertId]);
-  return rows[0];
+  const message = await Message.create({
+    session_id: sessionId,
+    sender,
+    content,
+    context,
+  });
+  return message;
 }
 
 async function getMessages(sessionId, limit = 50, offset = 0) {
-  const [rows] = await pool.query(
-    'SELECT * FROM messages WHERE session_id = ? ORDER BY created_at ASC LIMIT ? OFFSET ?',
-    [sessionId, Number(limit), Number(offset)]
-  );
-  return rows;
+  const messages = await Message.findAll({
+    where: { session_id: sessionId },
+    order: [['created_at', 'ASC']],
+    limit: Number(limit),
+    offset: Number(offset),
+  });
+  return messages;
 }
 
 module.exports = { addMessage, getMessages };

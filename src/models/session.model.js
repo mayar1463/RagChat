@@ -1,83 +1,50 @@
-const pool = require('./db');
+// src/models/session.model.js
+const Session = require('../sequelize-models/session.model.sequelize');
+const { Op } = require('sequelize');
 
 async function createSession(userId, title = 'New Chat') {
-  // Check for existing session with same userId + title
-  const [existing] = await pool.query(
-    'SELECT id FROM sessions WHERE user_id = ? AND title = ? LIMIT 1',
-    [userId, title]
-  );
-
-  if (existing.length > 0) {
-    const error = new Error('Session with this title already exists for this user');
-    error.status = 409;
-    throw error;
-  }
-
-  const [result] = await pool.query(
-    'INSERT INTO sessions (user_id, title) VALUES (?, ?)',
-    [userId, title]
-  );
-
-  const [rows] = await pool.query('SELECT * FROM sessions WHERE id = ?', [result.insertId]);
-  return rows[0];
+  const session = await Session.create({ user_id: userId, title });
+  return session;
 }
 
 async function getSessionsByUser(userId, limit = 20, offset = 0) {
-  const [rows] = await pool.query(
-    'SELECT * FROM sessions WHERE user_id = ? ORDER BY updated_at DESC LIMIT ? OFFSET ?',
-    [userId, Number(limit), Number(offset)]
-  );
-  return rows;
+  const sessions = await Session.findAll({
+    where: { user_id: userId },
+    order: [['updated_at', 'DESC']],
+    limit: Number(limit),
+    offset: Number(offset),
+  });
+  return sessions;
 }
 
 async function getSessionById(id) {
-  const [rows] = await pool.query('SELECT * FROM sessions WHERE id = ?', [id]);
-  return rows[0];
+  const session = await Session.findByPk(id);
+  return session;
 }
 
 async function renameSession(id, title) {
-  // Get the session to find its user_id
-  const [sessionRows] = await pool.query('SELECT * FROM sessions WHERE id = ?', [id]);
-  if (sessionRows.length === 0) {
-    const error = new Error('Session not found');
-    error.status = 404;
-    throw error;
-  }
-  const { user_id } = sessionRows[0];
-
-  // Check for duplicate title for same user
-  const [existing] = await pool.query(
-    'SELECT id FROM sessions WHERE user_id = ? AND title = ? AND id != ? LIMIT 1',
-    [user_id, title, id]
-  );
-
-  if (existing.length > 0) {
-    const error = new Error('Session with this title already exists for this user');
-    error.status = 409;
-    throw error;
-  }
-
-  await pool.query(
-    'UPDATE sessions SET title = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    [title, id]
-  );
-
-  const [rows] = await pool.query('SELECT * FROM sessions WHERE id = ?', [id]);
-  return rows[0];
+  const session = await Session.findByPk(id);
+  if (!session) return null;
+  
+  session.title = title;
+  await session.save();
+  return session;
 }
 
 async function toggleFavorite(id, isFavorite) {
-  await pool.query(
-    'UPDATE sessions SET is_favorite = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-    [isFavorite ? 1 : 0, id]
-  );
-  const [rows] = await pool.query('SELECT * FROM sessions WHERE id = ?', [id]);
-  return rows[0];
+  const session = await Session.findByPk(id);
+  if (!session) return null;
+  
+  session.is_favorite = isFavorite;
+  await session.save();
+  return session;
 }
 
 async function deleteSession(id) {
-  await pool.query('DELETE FROM sessions WHERE id = ?', [id]);
-  return; // cascade will delete messages
+  const session = await Session.findByPk(id);
+  if (session) {
+    await session.destroy();
+  }
 }
 
 module.exports = {
@@ -86,5 +53,5 @@ module.exports = {
   getSessionById,
   renameSession,
   toggleFavorite,
-  deleteSession
+  deleteSession,
 };
