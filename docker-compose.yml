@@ -6,9 +6,6 @@ services:
       context: .
       target: runtime
     volumes:
-      # This line maps the 'logs' folder on your host to
-      # the '/app/src/logs' directory inside the container,
-      # making your log files persistent.
       - ./logs:/app/src/logs
     ports:
       - "${PORT}:${PORT}"
@@ -19,11 +16,13 @@ services:
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
-      DB_PORT: ${DB_PORT}        # should still be 3306 inside container
+      DB_PORT: ${DB_PORT}
       RATE_LIMIT_WINDOW_MINUTES: ${RATE_LIMIT_WINDOW_MINUTES}
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
     depends_on:
-      - db
+      db:
+        condition: service_healthy # The 'backend' service now waits for 'db' to be healthy
+    command: ["npm", "run", "start"]
 
   backend-test:
     build:
@@ -37,7 +36,8 @@ services:
       DB_NAME: ${DB_NAME}
       DB_PORT: ${DB_PORT}
     depends_on:
-      - db
+      db:
+        condition: service_healthy # The 'backend-test' service also waits for 'db' to be healthy
     command: ["npm", "test"]
 
   db:
@@ -51,6 +51,11 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db_data:

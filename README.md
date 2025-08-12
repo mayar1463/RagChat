@@ -49,6 +49,14 @@ This project uses `docker compose` to manage the services. All commands should b
     docker compose up
     ```
 
+* **Remove all container including db and start as afresh :** Remove all container including db .
+
+    ```bash
+    docker compose down -v
+    docker compose build --no-cache
+     docker compose up --build
+    ```
+
 * **Stop All Running Containers:** Stops the services gracefully.
 
     ```bash
