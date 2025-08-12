@@ -14,7 +14,7 @@ const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
 
 swaggerDocument.servers = [
   {
-    url: `${PROTOCOL}://${HOST}:${PORT}${API_BASE_PATH}/${API_VERSION}`,
+    url: `${PROTOCOL}://${HOST}:${PORT}`,
   },
 ];
 

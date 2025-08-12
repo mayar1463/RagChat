@@ -49,9 +49,8 @@ const API_VERSION = process.env.API_VERSION || 'v1';
 
 const baseRoute = `${API_BASE_PATH}/${API_VERSION}`;
 
-// The health check endpoint is now correctly defined with the baseRoute
-// and remains positioned before the authentication middleware.
-app.get(`${baseRoute}/health`, (req, res) => res.json({ status: 'ok' }));
+// The health check endpoint is now configured to run without the version prefix.
+app.get(`${API_BASE_PATH}/health`, (req, res) => res.json({ status: 'ok' }));
 
 // Apply authentication middleware to all subsequent routes
 app.use(auth);
