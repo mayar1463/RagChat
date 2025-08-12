@@ -10,7 +10,8 @@ services:
     ports:
       - "${PORT}:${PORT}"
     environment:
-      PORT: ${BACKEND_PORT}
+      # Corrected: Now uses the `PORT` variable from your .env file
+      PORT: ${PORT}
       API_KEY: ${API_KEY}
       DB_HOST: ${DB_HOST}        
       DB_USER: ${DB_USER}
@@ -21,7 +22,7 @@ services:
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX}
     depends_on:
       db:
-        condition: service_healthy # The 'backend' service now waits for 'db' to be healthy
+        condition: service_healthy
     command: ["npm", "run", "start"]
 
   backend-test:
@@ -37,7 +38,7 @@ services:
       DB_PORT: ${DB_PORT}
     depends_on:
       db:
-        condition: service_healthy # The 'backend-test' service also waits for 'db' to be healthy
+        condition: service_healthy
     command: ["npm", "test"]
 
   db:
@@ -46,13 +47,15 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME}
     ports:
-      - "${DB_HOST_PORT}:3306"
+      # The internal container port is now a configurable environment variable.
+      - "3307:${DB_PORT}"
     command: --innodb-buffer-pool-size=64M
     volumes:
       - db_data:/var/lib/mysql
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u$$MYSQL_USER -p$$MYSQL_PASSWORD"]
+      # Corrected: The official MySQL image uses `root` and `$$MYSQL_ROOT_PASSWORD`
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
