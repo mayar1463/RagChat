@@ -1,8 +1,7 @@
-// src/models/message.model.js
+// src/sequelize-models/message.model.sequelize.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../models/db');
 const Session = require('./session.model.sequelize');
-
 const Message = sequelize.define('Message', {
   id: {
     type: DataTypes.INTEGER,
@@ -18,7 +17,7 @@ const Message = sequelize.define('Message', {
     },
   },
   sender: {
-    type: DataTypes.STRING,
+    type: DataTypes.ENUM('user', 'assistant'),
     allowNull: false,
   },
   content: {
@@ -26,18 +25,15 @@ const Message = sequelize.define('Message', {
     allowNull: false,
   },
   context: {
-    type: DataTypes.TEXT,
+    type: DataTypes.JSON,
     allowNull: true,
   },
 }, {
   tableName: 'messages',
   timestamps: true,
   createdAt: 'created_at',
-  updatedAt: false, // Assuming messages don't get updated
+  updatedAt: false,
 });
-
-// Define association
 Session.hasMany(Message, { foreignKey: 'session_id', onDelete: 'CASCADE' });
 Message.belongsTo(Session, { foreignKey: 'session_id' });
-
 module.exports = Message;

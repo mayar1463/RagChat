@@ -1,3 +1,4 @@
+// src/middlewares/rate.middleware.js
 const rateLimit = require('express-rate-limit');
 
 const windowMinutes = Number(process.env.RATE_LIMIT_WINDOW_MINUTES) || 15;

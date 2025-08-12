@@ -1,3 +1,4 @@
+// src/validations/session.validation.js
 const Joi = require('joi');
 
 const createSessionSchema = Joi.object({

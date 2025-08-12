@@ -1,7 +1,6 @@
-// src/models/session.model.js
+// src/sequelize-models/session.model.sequelize.js
 const { DataTypes } = require('sequelize');
 const sequelize = require('../models/db');
-
 const Session = sequelize.define('Session', {
   id: {
     type: DataTypes.INTEGER,
@@ -9,7 +8,7 @@ const Session = sequelize.define('Session', {
     primaryKey: true,
   },
   user_id: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING(50),
     allowNull: false,
   },
   title: {
@@ -33,5 +32,4 @@ const Session = sequelize.define('Session', {
     }
   ]
 });
-
 module.exports = Session;

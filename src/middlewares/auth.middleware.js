@@ -1,3 +1,4 @@
+// src/middlewares/auth.middleware.js
 module.exports = (req, res, next) => {
   const apiKey = req.header('x-api-key');
   if (!apiKey || apiKey !== process.env.API_KEY) {
