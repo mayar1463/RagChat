@@ -10,7 +10,7 @@ exports.addMessage = async (req, res, next) => {
     if (error) return res.status(400).json({ error: error.details[0].message });
 
     const session = await Session.findByPk(value.sessionId);
-    if (!session) return null;
+    if (!session) return res.status(400).json({ error: error.details[0].message });
 
     const message = await Message.create({
       session_id: value.sessionId,
