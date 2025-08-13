@@ -52,6 +52,7 @@ exports.renameSession = async (req, res, next) => {
     if (error) return res.status(400).json({ error: error.details[0].message });
     const session = await Session.findByPk(value.id);
     if (!session) return res.status(404).json({ error: 'Session not found' });
+    session.title = value.title;
     await session.save();
     return res.status(200).json(session);
   } catch (error) {
