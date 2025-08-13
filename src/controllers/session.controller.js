@@ -1,74 +1,93 @@
-// src/controllers/session.controller.js
-const sessionModel = require('../models/session.model');
-const { createSessionSchema, renameSessionSchema, favoriteSchema } = require('../validations/session.validation');
-const { ValidationError, NotFoundError, ConflictError } = require('../utils/errors');
-exports.create = async (req, res, next) => {
+const sequelize = require('../models');
+const { createSessionSchema, getSessionsSchema, renameSessionSchema, favoriteSchema } = require('../validations/session.validation');
+const { Session, Message } = sequelize.models;
+
+// POST /v1/sessions
+exports.createSession = async (req, res, next) => {
   try {
     const { error, value } = createSessionSchema.validate(req.body);
-    if (error) throw new ValidationError(error.details[0].message);
-    const existingSessions = await sessionModel.getSessionsByUser(value.userId);
-    const hasDuplicate = existingSessions.some(s => s.title === value.title);
-    if (hasDuplicate) {
-      throw new ConflictError('Session with this title already exists for this user');
-    }
-    const session = await sessionModel.createSession(value.userId, value.title);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+    const session = await Session.create({ user_id: value.userId, title: value.title });
     res.status(201).json(session);
-  } catch (err) {
-    next(err);
+  } catch (error) {
+    next(error);
   }
 };
-exports.list = async (req, res, next) => {
+
+// GET /v1/sessions?userId=...
+exports.getSessionsByUser = async (req, res, next) => {
   try {
-    const { userId, limit = 20, offset = 0 } = req.query;
-    if (!userId) throw new ValidationError('userId query param required');
-    const sessions = await sessionModel.getSessionsByUser(userId, limit, offset);
-    res.json(sessions);
-  } catch (err) {
-    next(err);
+    const { error, value } = getSessionsSchema.validate({ ...req.query });
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const sessions = await Session.findAll({
+      where: { user_id: value.userId }, // ➡️ The key change is here
+      limit: parseInt(value.limit),
+      offset: parseInt(value.offset),
+      order: [['updated_at', 'DESC']]
+    });
+    res.status(200).json(sessions);
+  } catch (error) {
+    next(error);
   }
 };
-exports.get = async (req, res, next) => {
+
+
+// GET /v1/sessions/:id
+exports.getSessionById = async (req, res, next) => {
   try {
-    const session = await sessionModel.getSessionById(req.params.id);
-    if (!session) throw new NotFoundError('Session not found');
-    res.json(session);
-  } catch (err) {
-    next(err);
+    const { id } = req.params;
+    const session = await Session.findByPk(id);
+    if (!session) return null;
+    res.status(200).json(session);
+  } catch (error) {
+    next(error);
   }
 };
-exports.rename = async (req, res, next) => {
+
+// PATCH /v1/sessions/:id
+exports.renameSession = async (req, res, next) => {
   try {
-    const { error, value } = renameSessionSchema.validate(req.body);
-    if (error) throw new ValidationError(error.details[0].message);
-    const sessionToRename = await sessionModel.getSessionById(req.params.id);
-    if (!sessionToRename) throw new NotFoundError('Session not found');
-    const existingSessions = await sessionModel.getSessionsByUser(sessionToRename.user_id);
-    const hasDuplicate = existingSessions.some(s => s.title === value.title && s.id !== sessionToRename.id);
-    if (hasDuplicate) {
-      throw new ConflictError('Session with this title already exists for this user');
-    }
-    const updatedSession = await sessionModel.renameSession(req.params.id, value.title);
-    res.json(updatedSession);
-  } catch (err) {
-    next(err);
+    const { error, value } = renameSessionSchema.validate({ ...req.body, id: req.params.id });
+    if (error) return res.status(400).json({ error: error.details[0].message });
+    const session = await Session.findByPk(value.id);
+    if (!session) return null;
+    session.title = value.title;
+    await session.save();
+    return res.status(200).json(session);
+  } catch (error) {
+    next(error);
   }
 };
-exports.favorite = async (req, res, next) => {
+
+
+// PATCH /v1/sessions/:id/favorite
+exports.favoriteSession = async (req, res, next) => {
   try {
-    const { error, value } = favoriteSchema.validate(req.body);
-    if (error) throw new ValidationError(error.details[0].message);
-    const session = await sessionModel.toggleFavorite(req.params.id, value.isFavorite);
-    if (!session) throw new NotFoundError('Session not found');
-    res.json(session);
-  } catch (err) {
-    next(err);
+    const { error, value } = favoriteSchema.validate({ ...req.body, id: req.params.id });
+    if (error) return res.status(400).json({ error: error.details[0].message });
+    const session = await Session.findByPk(value.id);
+    if (!session) return null;
+    session.is_favorite = value.isFavorite;
+    await session.save();
+    return res.status(200).json(session);
+  } catch (error) {
+    next(error);
   }
 };
-exports.delete = async (req, res, next) => {
+
+// DELETE /v1/sessions/:id
+exports.deleteSession = async (req, res, next) => {
   try {
-    await sessionModel.deleteSession(req.params.id);
-    res.status(204).send();
-  } catch (err) {
-    next(err);
+    const { id } = req.params;
+    const session = await Session.findByPk(id);
+    if (!session) return null;
+    const deleted = await Session.destroy({
+      where: { id }
+    });
+    if (deleted) return res.status(204).send();
+    return null;
+  } catch (error) {
+    next(error);
   }
 };

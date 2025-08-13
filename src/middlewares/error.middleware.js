@@ -1,20 +1,20 @@
-// src/middlewares/error.middleware.js
-const { CustomError } = require('../utils/errors'); // Assuming a file with custom error classes exists
+const errorHandler = (err, req, res, next) => {
+  let statusCode = err.status || 500;
+  let message = err.message || 'Internal Server Error';
 
-module.exports = (err, req, res, next) => {
-  if (res.headersSent) return next(err);
-
-  // Handle custom errors with specific status codes
-  if (err instanceof CustomError) {
-    return res.status(err.status).json({ error: err.message });
+  if (err.name === 'SequelizeUniqueConstraintError') {
+    const field = err.errors[0].path;
+    statusCode = 409;
+    message = `A resource with this unique ${field} already exists.`; // 🔑 Key change here
+  } else if (err.name === 'SequelizeValidationError') {
+    statusCode = 400;
+    message = err.errors.map(e => e.message).join(', ');
+  } else if (err.isJoi) {
+    statusCode = 400;
+    message = err.details.map(detail => detail.message).join(', ');
   }
 
-  // Handle Joi validation errors
-  if (err.isJoi) {
-    return res.status(400).json({ error: err.details[0].message });
-  }
-
-  // Handle unexpected errors gracefully
-  console.error(err);
-  return res.status(500).json({ error: 'Internal Server Error' });
+  res.status(statusCode).json({ error: message });
 };
+
+module.exports = errorHandler;

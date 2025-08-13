@@ -1,4 +1,3 @@
-// src/validations/message.validation.js
 const Joi = require('joi');
 
 const addMessageSchema = Joi.object({

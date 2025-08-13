@@ -1,29 +1,42 @@
-// src/controllers/message.controller.js
-const messageModel = require('../models/message.model');
-const sessionModel = require('../models/session.model');
+const sequelize = require('../models');
 const { addMessageSchema, getMessagesSchema } = require('../validations/message.validation');
-const { ValidationError, NotFoundError } = require('../utils/errors');
-exports.add = async (req, res, next) => {
+const { Session, Message } = sequelize.models;
+
+// POST /v1/sessions/:id/messages
+exports.addMessage = async (req, res, next) => {
   try {
     const { error, value } = addMessageSchema.validate({ ...req.body, sessionId: req.params.id });
-    if (error) throw new ValidationError(error.details[0].message);
-    const session = await sessionModel.getSessionById(req.params.id);
-    if (!session) throw new NotFoundError('Session not found');
-    const msg = await messageModel.addMessage(req.params.id, value.sender, value.content, value.context || null);
-    res.status(201).json(msg);
-  } catch (err) {
-    next(err);
+    const contextValue = value.context ? JSON.stringify(value.context) : null;
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const session = await Session.findByPk(value.sessionId);
+    if (!session) return null;
+
+    const message = await Message.create({
+      session_id: value.sessionId,
+      sender: value.sender,
+      content: value.content,
+      context: contextValue
+    });
+    res.status(201).json(message);
+  } catch (error) {
+    next(error);
   }
 };
-exports.list = async (req, res, next) => {
+
+// GET /v1/sessions/:id/messages?limit=...
+exports.getMessages = async (req, res, next) => {
   try {
     const { error, value } = getMessagesSchema.validate({ ...req.query, sessionId: req.params.id });
-    if (error) throw new ValidationError(error.details[0].message);
-    const session = await sessionModel.getSessionById(req.params.id);
-    if (!session) throw new NotFoundError('Session not found');
-    const rows = await messageModel.getMessages(req.params.id, value.limit, value.offset);
-    res.json(rows);
-  } catch (err) {
-    next(err);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+    const messages = await Message.findAll({
+      where: { session_id: value.sessionId },
+      limit: parseInt(value.limit),
+      offset: parseInt(value.offset),
+      order: [['created_at', 'ASC']]
+    });
+    res.status(200).json(messages);
+  } catch (error) {
+    next(error);
   }
 };

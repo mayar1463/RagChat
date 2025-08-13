@@ -1,12 +1,27 @@
 const express = require('express');
 const router = express.Router();
-const ctrl = require('../controllers/session.controller');
+const sessionController = require('../controllers/session.controller');
+const authMiddleware = require('../middlewares/auth.middleware');
 
-router.post('/', ctrl.create);
-router.get('/', ctrl.list);
-router.get('/:id', ctrl.get);
-router.patch('/:id', ctrl.rename);
-router.patch('/:id/favorite', ctrl.favorite);
-router.delete('/:id', ctrl.delete);
+// Apply auth middleware to all session routes
+router.use(authMiddleware);
+
+// POST /v1/sessions
+router.post('/', sessionController.createSession);
+
+// GET /v1/sessions?userId=...
+router.get('/', sessionController.getSessionsByUser);
+
+// GET /v1/sessions/:id
+router.get('/:id', sessionController.getSessionById);
+
+// PATCH /v1/sessions/:id
+router.patch('/:id', sessionController.renameSession);
+
+// PATCH /v1/sessions/:id/favorite
+router.patch('/:id/favorite', sessionController.favoriteSession);
+
+// DELETE /v1/sessions/:id
+router.delete('/:id', sessionController.deleteSession);
 
 module.exports = router;

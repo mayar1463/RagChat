@@ -1,21 +1,42 @@
-// src/models/message.model.js
-const Message = require('../sequelize-models/message.model.sequelize');
-async function addMessage(sessionId, sender, content, context = null) {
-  const message = await Message.create({
-    session_id: sessionId,
-    sender,
-    content,
-    context,
+module.exports = (sequelize, DataTypes) => {
+  const Message = sequelize.define('Message', {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
+    session_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'sessions',
+        key: 'id'
+      },
+      onDelete: 'CASCADE'
+    },
+    sender: {
+      type: DataTypes.ENUM('user', 'assistant'),
+      allowNull: false
+    },
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: false
+    },
+    context: {
+      type: DataTypes.JSON,
+      allowNull: true
+    }
+  }, {
+    tableName: 'messages',
+    indexes: [
+      {
+        fields: ['session_id']
+      }
+    ],
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: false // Only createdAt is needed for messages
   });
-  return message;
-}
-async function getMessages(sessionId, limit = 50, offset = 0) {
-  const messages = await Message.findAll({
-    where: { session_id: sessionId },
-    order: [['created_at', 'ASC']],
-    limit: Number(limit),
-    offset: Number(offset),
-  });
-  return messages;
-}
-module.exports = { addMessage, getMessages };
+
+  return Message;
+};
