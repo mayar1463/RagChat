@@ -28,4 +28,4 @@ const deleteSessionsSchema = Joi.object({
   userId: Joi.string().required(),
 });
 
-module.exports = { createSessionSchema,getSessionsSchema, renameSessionSchema, favoriteSchema, deleteSessionsSchema };
+module.exports = { createSessionSchema, getSessionsSchema, renameSessionSchema, favoriteSchema, deleteSessionsSchema };
