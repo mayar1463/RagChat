@@ -38,7 +38,7 @@ exports.getSessionById = async (req, res, next) => {
   try {
     const { id } = req.params;
     const session = await Session.findByPk(id);
-    if (!session) return res.status(400).json({ error: error.details[0].message });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
     res.status(200).json(session);
   } catch (error) {
     next(error);
@@ -51,8 +51,7 @@ exports.renameSession = async (req, res, next) => {
     const { error, value } = renameSessionSchema.validate({ ...req.body, id: req.params.id });
     if (error) return res.status(400).json({ error: error.details[0].message });
     const session = await Session.findByPk(value.id);
-    if (!session)return res.status(400).json({ error: error.details[0].message });
-    session.title = value.title;
+    if (!session) return res.status(404).json({ error: 'Session not found' });
     await session.save();
     return res.status(200).json(session);
   } catch (error) {
@@ -67,7 +66,7 @@ exports.favoriteSession = async (req, res, next) => {
     const { error, value } = favoriteSchema.validate({ ...req.body, id: req.params.id });
     if (error) return res.status(400).json({ error: error.details[0].message });
     const session = await Session.findByPk(value.id);
-    if (!session) return res.status(400).json({ error: error.details[0].message });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
     session.is_favorite = value.isFavorite;
     await session.save();
     return res.status(200).json(session);
@@ -81,12 +80,12 @@ exports.deleteSession = async (req, res, next) => {
   try {
     const { id } = req.params;
     const session = await Session.findByPk(id);
-    if (!session) return res.status(400).json({ error: error.details[0].message });
+    if (!session) return res.status(404).json({ error: 'Session not found' });
     const deleted = await Session.destroy({
       where: { id }
     });
     if (deleted) return res.status(204).send();
-    return res.status(400).json({ error: error.details[0].message });
+    return res.status(404).json({ error: 'Session not found' });
   } catch (error) {
     next(error);
   }
